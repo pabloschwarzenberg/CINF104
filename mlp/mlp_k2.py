@@ -24,6 +24,7 @@ class PerceptronMulticapaK:
         log_dir = "logs/fit/" + tag
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
         self.model.fit(x, y, validation_data=(xv,yv),epochs=128, batch_size=1,verbose=2,callbacks=[tensorboard_callback])
+        self.model.save('modelos/model_{0}'.format(tag))
         
 X=[]
 Y=[]

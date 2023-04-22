@@ -1,0 +1,42 @@
+{
+    "os": "macOS-13.3.1-x86_64-i386-64bit",
+    "python": "3.10.4",
+    "heartbeatAt": "2023-04-22T15:17:07.384325",
+    "startedAt": "2023-04-22T15:17:07.341784",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/Users/pabloschwarzenberg/Documents/CINF104/nlp/fine_tuning_mbert.py",
+    "codePath": "nlp/fine_tuning_mbert.py",
+    "git": {
+        "remote": "https://github.com/pabloschwarzenberg/CINF104.git",
+        "commit": "20840ff238069453839c10a21cd8b6a0612a39be"
+    },
+    "email": "pablo.schwarzenberg@unab.cl",
+    "root": "/Users/pabloschwarzenberg/Documents/CINF104",
+    "host": "alcyone.local",
+    "username": "pabloschwarzenberg",
+    "executable": "/Library/Frameworks/Python.framework/Versions/3.10/bin/python3",
+    "cpu_count": 6,
+    "cpu_count_logical": 12,
+    "cpu_freq": {
+        "current": 3100,
+        "min": 3100,
+        "max": 3100
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3100,
+            "min": 3100,
+            "max": 3100
+        }
+    ],
+    "disk": {
+        "total": 233.46913528442383,
+        "used": 164.6845359802246
+    },
+    "memory": {
+        "total": 64.0
+    }
+}

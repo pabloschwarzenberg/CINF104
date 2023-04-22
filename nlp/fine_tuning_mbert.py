@@ -1,11 +1,15 @@
 from transformers import TrainingArguments
 from transformers import Trainer
-from transformers import MobileBertTokenizerFast
+from transformers import MobileBertTokenizer
 from transformers import MobileBertForSequenceClassification
 import pandas as pd
+import numpy as np
 import torch
-import gc
 from datetime import datetime
+import data_utils
+import os
+
+os.environ["WANDB_DISABLED"] = "true"
 
 OUTPUT_PATH = data_utils.OUTPUT_PATH + "-classifier-" + str(data_utils.args.ntsamples)
 TEST_PREDICTIONS_FILE = OUTPUT_PATH+"/test-predictions-" + data_utils.MODEL_MARKER
@@ -17,67 +21,50 @@ class DataLoader(torch.utils.data.Dataset):
     def __init__(self, sentences=None, labels=None):
         self.sentences = sentences
         self.labels = labels
-        self.tokenizer = MobileBertTokenizerFast.from_pretrained("google/mobilebert-uncased/")
-        
-        if bool(sentences):
-            self.encodings = self.tokenizer(self.sentences,
-                                            max_length=512,
-                                            truncation = True,
-                                            padding = 'max_length')
+        self.tokenizer = MobileBertTokenizer.from_pretrained("google/mobilebert-uncased")
+        self.encodings = self.tokenizer(self.sentences,
+                                        max_length=512,
+                                        truncation = True,
+                                        padding = 'max_length')
         
     def __getitem__(self, idx):
         item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
-        
-        if self.labels == None:
-            item['labels'] = None
-        else:
-            item['labels'] = torch.tensor(self.labels[idx])
+        item['labels'] = torch.tensor(self.labels[idx])
         return item
+
     def __len__(self):
         return len(self.sentences)
-    
     
     def encode(self, x):
         return self.tokenizer(x, return_tensors = 'pt').to(DEVICE)
 
-
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu") #cuda x gpu en el 1ero
 print (f'Device Availble: {DEVICE}')
 
-model = MobileBertForSequenceClassification.from_pretrained("google/mobilebert-uncased/", num_labels=data_utils.NUM_CLASSES)
+model = MobileBertForSequenceClassification.from_pretrained("google/mobilebert-uncased", num_labels=data_utils.NUM_CLASSES)
 
-print(datetime.now()," Loading train")
+print(datetime.now()," Loading datasets")
 
-train_df, DICT_SIZE = data_utils.getDataset("train")
-train_texts = train_df['text'].to_list()
-train_labels = train_df['labels'].to_list()
+x_train=np.loadtxt("x_train.csv",delimiter="\t",skiprows=0,dtype="str")
+y_train=np.loadtxt("y_train.csv",delimiter="\t",skiprows=0)
+x_test=np.loadtxt("x_test.csv",delimiter="\t",skiprows=0,dtype="str")
+y_test=np.loadtxt("y_test.csv",delimiter="\t",skiprows=0)
+x_val=np.loadtxt("x_val.csv",delimiter="\t",skiprows=0,dtype="str")
+y_val=np.loadtxt("y_val.csv",delimiter="\t",skiprows=0)
 
-train = DataLoader(train_texts, train_labels)
-train_df = train_df.iloc[0:0]
-print(datetime.now()," starting gc")
-gc.collect()
+print(datetime.now()," Datasets loaded")
+print(x_train.shape)
+print(x_test.shape)
+print(x_val.shape)
+print(y_train.shape)
+print(y_test.shape)
+print(y_val.shape)
 
-print(datetime.now()," Loading validation")
+train = DataLoader(x_train.tolist(), y_train.tolist())
+test = DataLoader(x_test.tolist(), y_test.tolist())
+test = DataLoader(x_val.tolist(), y_val.tolist())
 
-eval_df, _ = data_utils.getDataset("validation")
-eval_texts = eval_df['text'].to_list()
-eval_labels = eval_df['labels'].to_list()
-
-eval = DataLoader(eval_texts, eval_labels)
-eval_df = eval_df.iloc[0:0]
-print(datetime.now()," starting gc")
-gc.collect()
-
-print(datetime.now()," Loading test")
-
-test_df, _ = data_utils.getDataset("test")
-test_texts = test_df['text'].to_list()
-test_labels = test_df['labels'].to_list()
-
-test = DataLoader(test_texts, test_labels)
-test_df = test_df.iloc[0:0]
-print(datetime.now()," starting gc")
-gc.collect()
+print(datetime.now()," Datasets tokenized")
 
 print("Start ",datetime.now())
 
@@ -105,8 +92,8 @@ print("End ",datetime.now())
 
 predictions = trainer.predict(eval).predictions
 
-score, fileOutput, allResults = data_utils.compute_metrics(predictions,eval_labels)
-data_utils.generate_graphs(allPredictions=predictions, allLabels=eval_labels, rocFilenamePrefix=EVAL_GRAPH_FILE_PREFIX, colorsNames=None, classesNames=None)
+score, fileOutput, allResults = data_utils.compute_metrics(predictions,y_val)
+data_utils.generate_graphs(allPredictions=predictions, allLabels=y_val, rocFilenamePrefix=EVAL_GRAPH_FILE_PREFIX, colorsNames=None, classesNames=None)
 f = open(EVAL_PREDICTIONS_FILE,"w+")
 f.write(fileOutput)
 f.close()
@@ -114,8 +101,8 @@ print('Eval ' + str(data_utils.model_name) + ' ' + str(data_utils.args.ntsamples
 
 predictions = trainer.predict(test).predictions
 
-score, fileOutput, allResults = data_utils.compute_metrics(predictions,test_labels)
-data_utils.generate_graphs(allPredictions=predictions, allLabels=test_labels, rocFilenamePrefix=TEST_GRAPH_FILE_PREFIX, colorsNames=None, classesNames=None)
+score, fileOutput, allResults = data_utils.compute_metrics(predictions,y_test)
+data_utils.generate_graphs(allPredictions=predictions, allLabels=y_test, rocFilenamePrefix=TEST_GRAPH_FILE_PREFIX, colorsNames=None, classesNames=None)
 f = open(TEST_PREDICTIONS_FILE,"w+")
 f.write(fileOutput)
 f.close()

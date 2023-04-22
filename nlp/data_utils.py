@@ -8,6 +8,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from scipy import interp
 import nltk
+import datetime
 
 nltk.download('punkt')
 nltk.download('stopwords')
@@ -19,10 +20,11 @@ parser.add_argument("--ntsamples", type=int, default=1000000, help="number of tr
 args = parser.parse_args()
 
 INPUT_PREFIX = "./"
+MODEL_MARKER = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 TRAIN_PATH = INPUT_PREFIX + "ds_training.csv"
 TEST_PATH = INPUT_PREFIX + "ds_test.csv"
 VAL_PATH = INPUT_PREFIX + "ds_eval.csv"
-OUTPUT_PATH = "./models/models-{0}-".format(args.model)
+OUTPUT_PATH = "./models/models-{0}-".format(MODEL_MARKER)
 
 OUTPUT_PATH = OUTPUT_PATH
 TEST_PREDICTIONS_FILE = OUTPUT_PATH+"test-predictions"
@@ -32,105 +34,8 @@ NUM_CLASSES = 2
 
 print (OUTPUT_PATH)
 
-model_type == "mobilebert":
+model_type = "mobilebert"
 model_name = "google/mobilebert-uncased"
-
-def getLabel(x):
-  if (x[0] == "ham"):
-    label = 0
-  else:
-    label = 1
-  return label
-
-def getDataset(step, ntsamples=10000000):
-    words = thisset = set()
-    filename = TEST_PATH
-    df = pd.DataFrame(columns=["text", "labels"])
-    if step == "train":
-      filename = TRAIN_PATH
-    elif step == "validation":
-      filename = VAL_PATH
-    elif step == "test":
-      filename = TEST_PATH
-    datafile = open(filename,"r")
-    lineCounter, longestSample, trimmed = 0, 0, 0
-    for line in datafile:
-      x = line.split()
-      label = getLabel(x)
-      add = False
-      startPoint, sampleLength = 0, 0
-      content = ""
-      for i,token in enumerate(x):
-         if (token == "#T#" or token =="#B#" or token == "#A#" or token == "#D#"):
-            add = False
-            startPoint = i
-            if (token == "#T#" and considerTitles):
-               add = True
-            if (token == "#B#" and considerBodies):
-               add = True
-            if (token == "#A#" and considerAnswers):
-               add = True
-            if (token == "#D#" and considerDescriptions):
-               add = True
-         elif (add and (i - startPoint) % 4 == 1 and i < len(x)-2 and x[i].lower() not in stop_words and x[i].isalnum()):
-           sampleLength = sampleLength + 1
-           if (sampleLength < WORD_MAX_LEN):
-             if (modeLemmataTrueCase):
-                tokenTmp = x[i+2]
-                if (token == x[i+1] and token == x[i+2]):
-                  tokenTmp = token
-                else:
-                  if (token != x[i+1]):
-                     tokenTmp = x[i+1]
-                if (modeSentimentAnalysis):
-                  content = content + " " + tokenTmp+x[i+3]
-                else:
-                  content = content + " " + tokenTmp
-             elif (modeRaw):
-                if (modeSentimentAnalysis):
-                  content = content + " " + x[i]+x[i+3]
-                else:
-                  content = content + " " + x[i]
-             elif (modeLemmata):
-                if (modeSentimentAnalysis):
-                  content = content + " " + x[i+1]+x[i+3]
-                else:
-                  content = content + " " + x[i+1]
-             elif (modeTrueCase):
-                if (modeSentimentAnalysis):
-                  content = content + " " + x[i+2]+x[i+3]
-                else:
-                  content = content + " " + x[i+2]
-           else:
-              trimmed = trimmed +1
-              break
-      if (sampleLength > longestSample):
-         longestSample = sampleLength
-      df.loc[lineCounter] = [content, label]
-      x_ = content.split()
-      for token in x_:
-         words.add(token)
-      if step == "train" and lineCounter > ntsamples:
-         break
-      #print ("%i %s", (lineCounter,df.loc[lineCounter]))
-      lineCounter = lineCounter + 1
-    datafile.close()
-
-    DICT_SIZE = len(words)
-    
-    print ('Tokens in longest ' + str(step) + ' sample: ' + str(longestSample))
-    print ('Samples in ' + str(step) + ': ' + str(lineCounter))
-    print ('Samples timmed ' + str(trimmed) + ' at ' + str(WORD_MAX_LEN))
-    print ('Number of words ' + str(DICT_SIZE))
-
-    return df, DICT_SIZE
-
-def saveDataset(df, filename):
-   f = open(filename,"w+")
-   for x in df.itertuples():
-      f.write(str(x[1])+'\n')
-   f.close()
-
 
 def compute_metrics(allPredictions, allLabels):
     sum_rr, sum_accuracy, sampleCounter = 0, 0, 0
@@ -321,11 +226,6 @@ def generate_graphs(allPredictions, allLabels, rocFilenamePrefix, classesNames=N
       plt.title('Receiver Operating Characteristic')
       plt.legend(loc="lower right")
       plt.savefig(rocFilenamePrefix+"-roc.png")
-
-if __name__ == "__main__":
-   print(str(getDataset('train')))
-   print(str(getDataset('validation')))
-
 
 #https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html
 #https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html#examples-using-sklearn-metrics-roc-curve

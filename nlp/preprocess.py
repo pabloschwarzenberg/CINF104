@@ -11,7 +11,7 @@ for linea in archivo:
     linea=linea.strip().split("\t")
     x=linea[1]
     x=x.translate(translator)
-    y=1 if linea[0]=="spam" else 0
+    y=[0,1] if linea[0]=="spam" else [1,0]
     X.append(x)
     Y.append(y)
 archivo.close()

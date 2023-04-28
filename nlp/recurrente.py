@@ -45,7 +45,7 @@ print(x_train.shape,y_train.shape)
 model = Sequential()
 model.add(Embedding(input_dim=vocabulary,output_dim=64))
 model.add(SimpleRNN(128))
-model.add(Dense(2, activation='sigmoid'))
+model.add(Dense(2, activation='softmax'))
 
 model.summary()
 
@@ -54,8 +54,8 @@ log_dir = "logs/fit/" + tag
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 model.compile(optimizer='Adam', loss='categorical_crossentropy', metrics=['acc'])
-spam_rnn = model.fit(x_train, y_train, validation_data=(x_val,y_val), batch_size=1, epochs=2)
-model.save('modelos/model_{0}'.format(tag))
+spam_rnn = model.fit(x_train, y_train, validation_data=(x_val,y_val), batch_size=1, epochs=1)
+model.save('models/model_{0}'.format(tag))
 
 yv_pred=model.predict(x_val)
 pd.DataFrame(x_val).to_csv("xv.csv",index=False,sep=";")

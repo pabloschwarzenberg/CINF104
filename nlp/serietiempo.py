@@ -1,0 +1,1 @@
+https://machinelearningmastery.com/understanding-simple-recurrent-neural-networks-in-keras/

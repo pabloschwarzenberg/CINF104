@@ -45,8 +45,8 @@ class PerceptronMulticapa:
         self.W[0]=self.W[0]-self.eta*np.dot(X.T,self.D[0])
         self.B[0]=self.B[0]-self.eta*self.D[0]
 
-    def train(self,X,Y,XV=None,YV=None,epochs=10):
-        log=open("log.csv","w")
+    def train(self,X,Y,XV=None,YV=None,epochs=10,tag=""):
+        log=open("log"+tag+".csv","w")
         log.write("epoch;loss;accuracy\n" if XV is None else "epoch;loss;accuracy;accuracy_val\n")
         for i in range(epochs):
             for j in range(X.shape[0]):

@@ -28,7 +28,7 @@ class PerceptronMulticapaPT:
 
 X=[]
 Y=[]
-archivo=open("dataset_ejemplo_40_3_16.csv")
+archivo=open("dataset_16_3.csv")
 archivo.readline()
 for linea in archivo:
     linea=linea.strip().split(";")

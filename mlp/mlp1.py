@@ -3,7 +3,7 @@ import numpy as np
 
 X=[]
 Y=[]
-archivo=open("dataset_ejemplo_40_3_16.csv")
+archivo=open("dataset_16_3.csv")
 archivo.readline()
 for linea in archivo:
     linea=linea.strip().split(";")
@@ -15,4 +15,4 @@ archivo.close()
 X=np.asarray(X)
 Y=np.asarray(Y)
 mlp=PerceptronMulticapa(hidden=32)
-mlp.train(X,Y,epochs=128)
+mlp.train(X,Y,epochs=128,tag="16_3")

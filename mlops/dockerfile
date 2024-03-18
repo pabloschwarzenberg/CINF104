@@ -1,5 +1,0 @@
-FROM tensorflow/serving
-
-COPY model_os42bs120230411-215731 /models/reprobacion/20230411215731
-
-ENV MODEL_NAME reprobacion

@@ -16,11 +16,11 @@ class PerceptronMulticapaK:
         self.model.add(self.input)
         self.model.add(self.hidden)
         self.model.add(self.output)
-        self.optimizer=keras.optimizers.SGD(learning_rate=0.1)
+        self.optimizer=keras.optimizers.SGD(learning_rate=0.01)
         self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer,metrics = ["accuracy"])
 
     def train(self,x,y,xv,yv):
-        tag=datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        tag=datetime.datetime.now().strftime("40_3_%Y%m%d-%H%M%S")
         log_dir = "logs/fit/" + tag
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
         self.model.fit(x, y, validation_data=(xv,yv),epochs=128, batch_size=1,verbose=2,callbacks=[tensorboard_callback])
@@ -28,7 +28,7 @@ class PerceptronMulticapaK:
         
 X=[]
 Y=[]
-archivo=open("dataset.csv")
+archivo=open("dataset_40_3.csv")
 archivo.readline()
 for linea in archivo:
     linea=linea.strip().split(";")

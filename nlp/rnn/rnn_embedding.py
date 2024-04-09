@@ -50,24 +50,52 @@ for palabra in palabras[0:8]:
     frecuentes.append(palabra[0])
 print(frecuentes)
 
+archivo=open("vocabulario.csv","w")
+for i in range(len(palabras_diferentes)):
+    archivo.write(str(i+1)+";"+palabras_diferentes[i]+"\n")
+archivo.close()
+
 sequences=[]
 for mensaje in mensajes:
     sequence=[]
     for palabra in mensaje:
         indice=palabras_diferentes.index(palabra)
-        sequence.append(indice)
+        sequence.append(indice+1)
     sequences.append(sequence)
 
 data = pad_sequences(sequences)
 input_length=len(data[0])
 
+data=data.tolist()
+for i in range(len(mensajes)):
+    data[i].insert(0,mensajes[i])
+
 print(vocabulary,input_length)
-X=np.asarray(data)
+
 Y=np.asarray(y)
 
-x_train, x_val, y_train, y_val = train_test_split(X, Y, test_size=0.2, stratify=y, random_state=seed)
+x_train_raw, x_val_raw, y_train, y_val = train_test_split(data, Y, test_size=0.2, stratify=y, random_state=seed)
 
-print(x_train.shape,y_train.shape)
+archivo=open("xv_text.csv","w")
+x_val=[]
+for i in range(len(x_val_raw)):
+    archivo.write(" ".join(x_val_raw[i][0])+"\n")
+    x_val_raw[i].pop(0)
+    x_val.append(np.asarray(x_val_raw[i]))
+archivo.close()
+
+x_train=[]
+archivo=open("xt_text.csv","w")
+for i in range(len(x_train_raw)):
+    archivo.write(" ".join(x_train_raw[i][0])+"\n")
+    x_train_raw[i].pop(0)
+    x_train.append(np.asarray(x_train_raw[i]))
+archivo.close()
+
+x_train=np.asarray(x_train)
+x_val=np.asarray(x_val)
+
+print(x_train.shape,y_train.shape,x_val.shape,y_val.shape)
 
 model = Sequential()
 model.add(Input(shape=(input_length,)))
@@ -82,7 +110,7 @@ log_dir = "logs/fit/" + tag
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 model.compile(optimizer='Adam', loss='categorical_crossentropy', metrics=['AUC'])
-spam_rnn = model.fit(x_train, y_train, validation_data=(x_val,y_val), batch_size=1, epochs=2,verbose=2,callbacks=[tensorboard_callback])
+spam_rnn = model.fit(x_train, y_train, validation_data=(x_val,y_val), batch_size=1, epochs=1,verbose=2,callbacks=[tensorboard_callback])
 model.save('models/model_{0}.keras'.format(tag))
 
 yv_pred=model.predict(x_val)
